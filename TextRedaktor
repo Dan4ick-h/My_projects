@@ -1,0 +1,105 @@
+#include <iostream>
+#include <vector>
+#include <string>
+
+class TextRedaktor
+{
+private:
+    std::vector<std::string> lines;
+
+public:
+    void addLine(const std::string& line)
+    {
+        lines.push_back(line);
+    }
+
+    void editLine(int index, const std::string& newLine)
+    {
+        if (index >= 0 && index < lines.size())
+        {
+            lines[index] = newLine;
+        }
+        else
+        {
+            std::cout << "Invalid line number." << std::endl;
+        }
+    }
+
+    void deleteLine(int index)
+    {
+        if (index >= 0 && index < lines.size())
+        {
+            lines.erase(lines.begin() + index);
+        }
+        else
+        {
+            std::cout << "Invalid line number." << std::endl;
+        }
+    }
+
+    void display() const
+    {
+        for (int i = 0; i < lines.size(); i++)
+        {
+            std::cout << i + 1 << ": " << lines[i] << std::endl;
+        }
+    }
+};
+
+int main()
+{
+    TextRedaktor redaktor;
+    int choice, lineNumber;
+    std::string line;
+
+    while (true)
+    {
+        std::cout << "\nText Editor Options:\n";
+        std::cout << "1. Add Line\n";
+        std::cout << "2. Edit Line\n";
+        std::cout << "3. Delete Line\n";
+        std::cout << "4. Display Lines\n";
+        std::cout << "5. Exit\n";
+        std::cout << "Enter your choice: ";
+        std::cin >> choice;
+
+        switch (choice)
+        {
+        case 1:
+            std::cout << "Enter line text: ";
+            std::cin.ignore();
+            std::getline(std::cin, line);
+            redaktor.addLine(line);
+            break;
+
+        case 2:
+            std::cout << "Enter line number to edit: ";
+            std::cin >> lineNumber;
+            std::cout << "Enter new line text: ";
+            std::cin.ignore();
+            std::getline(std::cin, line);
+            redaktor.editLine(lineNumber - 1, line);
+            break;
+
+        case 3:
+            std::cout << "Enter line number to delete: ";
+            std::cin >> lineNumber;
+            redaktor.deleteLine(lineNumber - 1);
+            break;
+
+        case 4:
+            redaktor.display();
+            break;
+
+        case 5:
+            std::cout << "Exiting..." << std::endl;
+            return 0;
+
+        default:
+            std::cout << "Invalid choice. Please try again." << std::endl;
+            break;
+        }
+    }
+
+    return 0;
+}
