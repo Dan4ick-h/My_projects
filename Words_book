@@ -1,0 +1,107 @@
+#include <iostream>
+#include <map>
+#include <string>
+
+
+class Wordsbook {
+    std::map<std::string, std::string> words;
+
+public:
+    void AddWord(const std::string& word, const std::string& translation) {
+        words[word] = translation;
+        std::cout << "Word added." << std::endl;
+    }
+
+    void EditWord(const std::string& word, const std::string& new_translation) {
+        auto it = words.find(word);
+        if (it != words.end()) {
+            it->second = new_translation;
+            std::cout << "The word is updated." << std::endl;
+        }
+        else {
+            std::cout << "Word is not founded." << std::endl;
+        }
+    }
+
+    void DeleteWord(const std::string& word) {
+        if (words.erase(word)) {
+            std::cout << "The word is deleted." << std::endl;
+        }
+        else {
+            std::cout << "Word is not founded." << std::endl;
+        }
+    }
+
+    void FindWord(const std::string& word) const {
+        auto it = words.find(word);
+        if (it != words.end()) {
+            std::cout << "Word: " << it->first << ", Translated: " << it->second << std::endl;
+        }
+        else {
+            std::cout << "Word is not founded." << std::endl;
+        }
+    }
+
+    void ShowAll() const {
+        if (words.empty()) {
+            std::cout << "The word book is empty";
+        }
+        else {
+            for (const auto& { word, translation } : words) {
+                std::cout << "Word: " << word << ", Translation: " << translation << std::endl;
+            }
+        }
+    }
+};
+
+int main() {
+    Wordsbook wordsbook;
+    int choice;
+    std::string word, translation;
+
+    while (true) {
+        std::cout << "1. Add word" << std::endl;
+            std::cout << "2. Edit word" << std::endl;
+            std::cout << "3. Delete word" << std::endl;
+            std::cout << "4. Find word" << std::endl;
+            std::cout << "5. Show all" << std::endl;
+            std::cout << "6. Exit" << std::endl;
+            std::cout << "Your choice:: " << std::endl;
+        std::cin >> choice;
+
+        switch (choice) {
+        case 1:
+            std::cout << "Enter word: ";
+            std::cin >> word;
+            std::cout << "Enter translation: ";
+            std::cin >> translation;
+            wordsbook.AddWord(word, translation);
+            break;
+        case 2:
+            std::cout << "Enter word for edit: ";
+            std::cin >> word;
+            std::cout << "Enter the new word and translation: ";
+            std::cin >> translation;
+            wordsbook.EditWord(word, translation);
+            break;
+        case 3:
+            std::cout << "Enter word for delete: ";
+            std::cin >> word;
+            wordsbook.DeleteWord(word);
+            break;
+        case 4:
+            std::cout << "Enter word to search: ";
+            std::cin >> word;
+            wordsbook.FindWord(word);
+            break;
+        case 5:
+            wordsbook.ShowAll();
+            break;
+        case 6:
+            std::cout << "Exit..." << std::endl;
+            return 0;
+        default:
+            std::cout << "Error.The choice is wrong, please, try again." << std::endl;
+        }
+    }
+}
