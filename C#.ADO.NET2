@@ -1,0 +1,252 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Data.SqlClient;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Xml.Linq;
+
+namespace ConsoleApp3
+{
+    internal class Program
+    {
+        private static string connStr = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=master;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False";
+        static void Main(string[] args)
+        {
+            using (SqlConnection connection = new SqlConnection(connStr))
+            {
+                try
+                {
+                    connection.Open();
+                    Console.WriteLine("The database connection was successful");
+                    while (true)
+                    {
+                        Console.WriteLine("\nChoose an action");
+                        Console.WriteLine("1. Show all products");
+                        Console.WriteLine("2. Show all products type");
+                        Console.WriteLine("3. Show all suppliers");
+                        Console.WriteLine("4. Show product with maximum quantity");
+                        Console.WriteLine("5. Show product with minimum quantity");
+                        Console.WriteLine("6. Show the product with the minimum cost");
+                        Console.WriteLine("7. Show the product with the  maximum cost");
+                        Console.WriteLine("8. Show products of the given category");
+                        Console.WriteLine("9. Show products of the given supplier");
+                        Console.WriteLine("10. Show the product that has been in stock the longest");
+                        Console.WriteLine("11. Show the average number of products by type");
+                        Console.WriteLine("0. Exit");
+
+                        string choice = Console.ReadLine();
+
+                        switch (choice)
+                        {
+                            case "1":
+                                ShowAllProducts(connection);
+                                break;
+                            case "2":
+                                ShowAllTypes(connection);
+                                break;
+                            case "3":
+                                ShowAllSuppliers(connection);
+                                break;
+                            case "4":
+                                ShowMaxQuantityProduct(connection);
+                                break;
+                            case "5":
+                                ShowMinQuantityProduct(connection);
+                                break;
+                            case "6":
+                                ShowMinCostProduct(connection);
+                                break;
+                            case "7":
+                                ShowMaxCostProduct(connection);
+                                break;
+                            case "8":
+                                Console.Write("Enter Category: ");
+                                string category = Console.ReadLine();
+                                ShowProductsByType(connection, category);
+                                break;
+                            case "9":
+                                Console.Write("Enter Supplier: ");
+                                string supplier = Console.ReadLine();
+                                ShowProductsBySupplier(connection, supplier);
+                                break;
+                            case "10":
+                                ShowOldestProduct(connection);
+                                break;
+                            case "11":
+                                ShowAverageQuantityByType(connection);
+                                break;
+                            case "0":
+                                return;
+                            default:
+                                Console.WriteLine("Невірний вибір, спробуйте ще раз.");
+                                break;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Connection error: " + ex.Message);
+                }
+            }
+        }
+
+        static void ShowAllProducts(SqlConnection connection)
+        {
+            string query = "select p.[Name], pt.TypeName, s.SupplierName, p.Quantity, p.CostPrice, p.SupplyDate " +
+                "from Products p " +
+                "Join ProductsTypes pt on p.TypeID = pt.Id " +
+                "Join Suppliers s on p.SupplierId = s.Id";
+            using (SqlCommand command = new SqlCommand(query, connection))
+            using (SqlDataReader reader = command.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    Console.WriteLine($"{reader["[Name]"]} | {reader["TypeName"]} | {reader["SupplierName"]} |" +
+                        $"{reader["Quantity"]} | {reader["CostPrice"]} | {reader["SupplyDate"]}");
+                }
+            }
+        }
+
+        static void ShowAllTypes(SqlConnection connection)
+        {
+            string query = "select TypeName from ProductTypes";
+            using (SqlCommand command = new SqlCommand(query, connection))
+            using (SqlDataReader reader = command.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    Console.WriteLine(reader["TypeName"]);
+                }
+            }
+        }
+        static void ShowAllSuppliers(SqlConnection connection)
+        {
+            string query = "select SupplierName from Suppliers";
+            using (SqlCommand command = new SqlCommand(query, connection))
+            using (SqlDataReader reader = command.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    Console.WriteLine(reader["SupplierName"]);
+                }
+            }
+        }
+
+        static void ShowMaxQuantityProduct(SqlConnection connection)
+        {
+            string query = " select [Name] from Products where Quantity = (select max(Quantity) from Products)";
+            using (SqlCommand command = new SqlCommand(query, connection))
+            using (SqlDataReader reader = command.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    Console.WriteLine("Max Quantity: " + reader["[Name]"]);
+                }
+            }
+        }
+
+        static void ShowMinQuantityProduct(SqlConnection connection)
+        {
+            string query = "select [Name] from Products where Quantity = (select min(Quantity) from Products)";
+            using (SqlCommand command = new SqlCommand(query, connection))
+            using (SqlDataReader reader = command.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    Console.WriteLine("Min Quantity: " + reader["[Name]"]);
+                }
+            }
+        }
+
+        static void ShowMinCostProduct(SqlConnection connection)
+        {
+            string query = "select [Name] from Products where CostPrice = (select min(CostPrice) from Products)";
+            using (SqlCommand command = new SqlCommand(query, connection))
+            using (SqlDataReader reader = command.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    Console.WriteLine("Min CostPrice: " + reader["[Name]"]);
+                }
+            }
+
+        }
+
+        static void ShowMaxCostProduct(SqlConnection connection)
+        {
+            string query = "select [Name] from Products where CostPrice = (select max(CostPrice) from Products)";
+            using (SqlCommand command = new SqlCommand(query, connection))
+            using (SqlDataReader reader = command.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    Console.WriteLine("Max CostPrice: " + reader["[Name]"]);
+                }
+            }
+        }
+
+        static void ShowProductsByType(SqlConnection connection, string typeName)
+        {
+            string query = "select [Name] from Products p join ProductTypes pt on p.TypeId = pt.Id where pt.TypeName = @TypeName";
+            using (SqlCommand command = new SqlCommand(query, connection))
+            {
+                command.Parameters.AddWithValue("@TypeName", typeName);
+                using (SqlDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        Console.WriteLine(reader["[Name]"]);
+                    }
+                }
+            }
+        }
+
+        static void ShowProductsBySupplier(SqlConnection connection, string supplierName)
+        {
+            string query = "select [Name] from Products p join Suppliers s on SupplierId = s.Id where s.SupplierName = @SupplierName";
+            using (SqlCommand command = new SqlCommand(query, connection))
+            {
+                command.Parameters.AddWithValue("@SupplierName", supplierName);
+                using(SqlDataReader reader = command.ExecuteReader())
+                {
+                    while(reader.Read())
+                    {
+                        Console.WriteLine(reader["[Name]"]);
+                    }
+                }
+
+            }
+        }
+
+        static void ShowOldestProduct(SqlConnection connection)
+        {
+            string query = "select [Name] from Products where SupplyDate = (select min(SupplyDate) from Products)";
+            using(SqlCommand command = new SqlCommand(query, connection))
+            using(SqlDataReader reader = command.ExecuteReader())
+            {
+                while(reader.Read())
+                {
+                    Console.WriteLine(reader["[Name]"]);
+                }
+            }
+        }
+        
+        static void ShowAverageQuantityByType(SqlConnection connection)
+        {
+            string query = "select pt.TypeName, AVG(p.Quantity) as AvgQuantity from Products p" +
+                "join ProductTypes pt on p.TypeId = pt.Id group by pt.TypeName";
+            using(SqlCommand command = new SqlCommand(query, connection))
+            using(SqlDataReader reader = command.ExecuteReader())
+            {
+                while(reader.Read())
+                {
+                    Console.WriteLine($"{reader["TypeName"]}: {reader["AvgQuantity"]}");
+                }
+            }
+        }
+    }
+}
